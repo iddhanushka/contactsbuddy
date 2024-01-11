@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -29,6 +29,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 
+// DB
+import db from './src/database';
+
 import ContactList from './src/components/ContactList';
 import CreateContact from './src/components/CreateContact';
 import ViewContact from './src/components/ViewContact';
@@ -43,6 +46,22 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  useEffect(() => {
+    // Example: Creating a table
+    db.transaction(async tx => {
+      await tx.executeSql(
+        'CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phoneNumber TEXT)',
+        [],
+        (_, results) => {
+          console.log('Table created successfully:', results);
+        },
+        (_, error) => {
+          console.error('Error creating table:', error);
+        },
+      );
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.appBody}>
       <NavigationContainer>
@@ -55,7 +74,6 @@ function App(): React.JSX.Element {
           <Stack.Screen name="EditContact" component={EditContact} />
         </Stack.Navigator>
       </NavigationContainer>
-      {/* <ContactList /> */}
     </SafeAreaView>
   );
 }

@@ -1,10 +1,54 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Button,
+  Alert,
+} from 'react-native';
+import React, {useState, useEffect} from 'react';
 
+// Fontawesome
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
+
+// DB
+import db from '../database';
+
+// components
+import ContactList from './ContactList';
 
 const CreateContact = (props: any) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  function saveContact() {
+    const insertData = async (name: any, phone: any) => {
+      await db.transaction(async tx => {
+        await tx.executeSql(
+          'INSERT INTO contacts (name, phoneNumber) VALUES (?, ?)',
+          [name, phone],
+          (tx, results) => {
+            if (results.rowsAffected > 0) {
+              console.log('Data inserted successfully');
+            } else {
+              console.warn('Failed to insert data');
+            }
+          },
+          error => {
+            console.error(error);
+          },
+        );
+      });
+    };
+
+    insertData(name, phone);
+    setName('');
+    setPhone('');
+    props.navigation.navigate('Home');
+  }
+
   return (
     <View style={styles.main}>
       <View style={styles.container}>
@@ -29,18 +73,27 @@ const CreateContact = (props: any) => {
         </View>
         <View style={styles.contactField}>
           <TextInput
+            value={name}
+            onChangeText={name => setName(name)}
             placeholder="Name"
             placeholderTextColor="#fff"
             style={styles.name}></TextInput>
           <TextInput
+            value={phone}
+            onChangeText={phone => {
+              setPhone(phone);
+            }}
             placeholder="Phone"
             placeholderTextColor="#fff"
+            keyboardType="number-pad"
             style={styles.phone}></TextInput>
         </View>
 
-        <View style={styles.saveButton}>
-          <Text style={styles.buttonText}>Save</Text>
-        </View>
+        <TouchableOpacity onPress={saveContact}>
+          <View style={styles.saveButton}>
+            <Text style={styles.buttonText}>Save</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );

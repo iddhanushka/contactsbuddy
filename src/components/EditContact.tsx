@@ -6,11 +6,40 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
+import {useRoute} from '@react-navigation/native';
 
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
+// DB
+import db from '../database';
+
 const EditContact = (props: any) => {
+  const route = useRoute();
+  const updateItem = route.params.viewItem;
+  // console.log(updateItem);
+
+  const [editableName, setEditableName] = useState(updateItem.name);
+  const [editablePhone, setEditablePhone] = useState(updateItem.phoneNumber);
+
+  function updateContact() {
+    db.transaction(async tx => {
+      await tx.executeSql(
+        'UPDATE contacts SET name = ?, phoneNumber = ? WHERE id = ?;',
+        [editableName, editablePhone, updateItem.id],
+        (_, {rowsAffected}) => {
+          if (rowsAffected > 0) {
+            console.log('User information updated successfully!');
+            props.navigation.navigate('Home');
+          } else {
+            console.error('No user found with the given ID.');
+          }
+        },
+        error => console.error('Error updating user information:', error),
+      );
+    });
+  }
+
   return (
     <View style={styles.main}>
       <View style={styles.container}>
@@ -35,18 +64,24 @@ const EditContact = (props: any) => {
         </View>
         <View style={styles.contactField}>
           <TextInput
+            onChangeText={updatedName => setEditableName(updatedName)}
+            value={editableName}
             placeholder="Name"
             placeholderTextColor="#fff"
             style={styles.name}></TextInput>
           <TextInput
+            onChangeText={updatePhone => setEditablePhone(updatePhone)}
+            value={editablePhone}
             placeholder="Phone"
             placeholderTextColor="#fff"
             style={styles.phone}></TextInput>
         </View>
 
-        <View style={styles.saveButton}>
-          <Text style={styles.buttonText}>Save</Text>
-        </View>
+        <TouchableOpacity onPress={updateContact}>
+          <View style={styles.saveButton}>
+            <Text style={styles.buttonText}>Save</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );

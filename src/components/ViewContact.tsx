@@ -1,9 +1,57 @@
 import {Image, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
+import {useRoute} from '@react-navigation/native';
 
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
+// DB
+import db from '../database';
+
 const ViewContact = (props: any) => {
+  const [viewContact, setViewContact] = useState('');
+
+  const route = useRoute();
+  const contactId = route.params.item.id;
+  const viewItem = route.params.item;
+  // console.log(viewItem);
+
+  useEffect(() => {
+    db.transaction(async tx => {
+      await tx.executeSql(
+        'SELECT * FROM contacts WHERE id = ?',
+        [contactId],
+        (_, results) => {
+          if (results.rows.length > 0) {
+            const contact = results.rows.item(0);
+            console.log(contact);
+            setViewContact(contact);
+          }
+        },
+        (_, error) => {
+          console.error('Error fetching last submitted data:', error);
+        },
+      );
+    });
+  }, []);
+
+  function deleteContact() {
+    db.transaction(tx => {
+      tx.executeSql(
+        'DELETE FROM contacts WHERE id = ?;',
+        [contactId],
+        (_, {rowsAffected}) => {
+          if (rowsAffected > 0) {
+            console.log('User information deleted successfully!');
+            props.navigation.goBack();
+          } else {
+            console.error('No user found with the given ID.');
+          }
+        },
+        error => console.error('Error deleting user information:', error),
+      );
+    });
+  }
+
   return (
     <View style={styles.main}>
       <View style={styles.container}>
@@ -24,21 +72,23 @@ const ViewContact = (props: any) => {
             source={require('../images/pro-pic.png')}
             style={styles.profilePhoto}
           />
-          <Text style={styles.contactName}>Amara Kamal</Text>
+          <Text style={styles.contactName}>{viewContact.name}</Text>
         </View>
         <View style={styles.contactInfo}>
           <Text style={styles.contactInfoHeading}>Contact info</Text>
-          <Text style={styles.contactNumber}>071 1234567</Text>
+          <Text style={styles.contactNumber}>{viewContact.phoneNumber}</Text>
         </View>
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            onPress={() => props.navigation.navigate('EditContact')}>
+            onPress={() =>
+              props.navigation.navigate('EditContact', {viewItem})
+            }>
             <View style={styles.editButton}>
               <Text style={styles.buttonTextedit}>Edit</Text>
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={deleteContact}>
             <View style={styles.deleteButton}>
               <Text style={styles.buttonTextdelete}>Delete</Text>
             </View>

@@ -5,13 +5,40 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 
 // FontAwesome
 import Icon from 'react-native-vector-icons/AntDesign';
 
+// DB
+import db from '../database';
+
 export default function ContactList(props: any) {
+  const [contacts, setContacts] = useState([]);
+
+  useEffect(() => {
+    db.transaction(async tx => {
+      await tx.executeSql(
+        'SELECT * FROM contacts',
+        [],
+        (_, results) => {
+          const rows = results.rows;
+          const contactsArray = [];
+          for (let i = 0; i < rows.length; i++) {
+            contactsArray.push(rows.item(i));
+          }
+          setContacts(contactsArray);
+        },
+        (_, error) => {
+          console.error('Error fetching contacts:', error);
+        },
+      );
+    });
+  }, [contacts]);
+
   return (
     <View style={styles.main}>
       <View style={styles.container}>
@@ -19,83 +46,40 @@ export default function ContactList(props: any) {
         <View>
           <TextInput
             placeholder="Search"
-            placeholderTextColor="#000000/70%"
+            placeholderTextColor="#000"
             style={styles.searchInput}
           />
         </View>
-        <View style={styles.contactList}>
-          <TouchableOpacity
-            onPress={() => props.navigation.navigate('ViewContact')}>
-            <View style={styles.contactItem}>
-              <Image
-                source={require('../images/pro-pic.png')}
-                style={styles.profilePhoto}
-              />
-              <View>
-                <Text style={[styles.contactName, styles.contactInfo]}>
-                  Amara Kamal
-                </Text>
-                <Text style={[styles.contactNumber, styles.contactInfo]}>
-                  071 1234567
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+        <ScrollView>
+          <View style={styles.contactList}>
+            {contacts.length > 0 ? (
+              contacts.map(item => (
+                <TouchableOpacity
+                  onPress={() =>
+                    props.navigation.navigate('ViewContact', {item})
+                  }>
+                  <View style={styles.contactItem}>
+                    <Image
+                      source={require('../images/pro-pic.png')}
+                      style={styles.profilePhoto}
+                    />
+                    <View>
+                      <Text style={[styles.contactName, styles.contactInfo]}>
+                        {item.name}
+                      </Text>
+                      <Text style={[styles.contactNumber, styles.contactInfo]}>
+                        {item.phoneNumber}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noContacts}>No contacts available</Text>
+            )}
+          </View>
+        </ScrollView>
 
-          <TouchableOpacity
-            onPress={() => props.navigation.navigate('ViewContact')}>
-            <View style={styles.contactItem}>
-              <Image
-                source={require('../images/pro-pic.png')}
-                style={styles.profilePhoto}
-              />
-              <View>
-                <Text style={[styles.contactName, styles.contactInfo]}>
-                  Amara Kamal
-                </Text>
-                <Text style={[styles.contactNumber, styles.contactInfo]}>
-                  071 1234567
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => props.navigation.navigate('ViewContact')}>
-            <View style={styles.contactItem}>
-              <Image
-                source={require('../images/pro-pic.png')}
-                style={styles.profilePhoto}
-              />
-              <View>
-                <Text style={[styles.contactName, styles.contactInfo]}>
-                  Amara Kamal
-                </Text>
-                <Text style={[styles.contactNumber, styles.contactInfo]}>
-                  071 1234567
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => props.navigation.navigate('ViewContact')}>
-            <View style={styles.contactItem}>
-              <Image
-                source={require('../images/pro-pic.png')}
-                style={styles.profilePhoto}
-              />
-              <View>
-                <Text style={[styles.contactName, styles.contactInfo]}>
-                  Amara Kamal
-                </Text>
-                <Text style={[styles.contactNumber, styles.contactInfo]}>
-                  071 1234567
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </View>
         <TouchableOpacity
           onPress={() => props.navigation.navigate('CreateContact')}>
           <View style={styles.addContactButton}>
@@ -116,6 +100,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     paddingHorizontal: 10,
+    height: '100%',
   },
   headerText: {
     color: '#fff',
@@ -154,6 +139,7 @@ const styles = StyleSheet.create({
   },
   contactList: {
     marginTop: 30,
+    position: 'relative',
   },
   addContactButton: {
     backgroundColor: '#665D5D',
@@ -166,7 +152,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 7,
     position: 'absolute',
-    bottom: -10,
-    right: 10,
+    bottom: 20,
+    right: 20,
+  },
+  noContacts: {
+    color: '#fff',
+    paddingLeft: 10,
+    fontSize: 18,
   },
 });

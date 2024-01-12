@@ -11,41 +11,54 @@ import {
 import React, {useState, useEffect} from 'react';
 
 // FontAwesome
-import Icon from 'react-native-vector-icons/AntDesign';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 // DB
 import db from '../database';
 
-export default function ContactList(props: any) {
-  const [contacts, setContacts] = useState([]);
+export default function Search(props: any) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredContacts, setFilteredContacts] = useState([]);
 
   useEffect(() => {
     db.transaction(async tx => {
       await tx.executeSql(
-        'SELECT * FROM contacts',
-        [],
+        'SELECT * FROM contacts WHERE name LIKE ?',
+        [`%${searchTerm}%`],
         (_, results) => {
-          const rows = results.rows;
-          const contactsArray = [];
-          for (let i = 0; i < rows.length; i++) {
-            contactsArray.push(rows.item(i));
+          const len = results.rows.length;
+          const result = [];
+          for (let i = 0; i < len; i++) {
+            result.push(results.rows.item(i));
           }
-          setContacts(contactsArray);
+          setFilteredContacts(result);
         },
         (_, error) => {
           console.error('Error fetching contacts:', error);
         },
       );
     });
-  }, [contacts]);
+  }, [filteredContacts]);
 
   return (
     <View style={styles.main}>
       <View style={styles.container}>
-        <Text style={styles.headerText}>Contacts</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => props.navigation.navigate('Home')}>
+            <Icon
+              name="circle-arrow-left"
+              size={24}
+              color={'#fff'}
+              style={styles.backButton}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Search contacts</Text>
+        </View>
+
         <View>
           <TextInput
-            onFocus={() => props.navigation.navigate('Search')}
+            onChangeText={name => setSearchTerm(name)}
+            value={searchTerm}
             placeholder="Search"
             placeholderTextColor="#000"
             style={styles.searchInput}
@@ -53,12 +66,9 @@ export default function ContactList(props: any) {
         </View>
         <ScrollView>
           <View style={styles.contactList}>
-            {contacts.length > 0 ? (
-              contacts.map(item => (
-                <TouchableOpacity
-                  onPress={() =>
-                    props.navigation.navigate('ViewContact', {item})
-                  }>
+            {filteredContacts.length > 0 ? (
+              filteredContacts.map(item => (
+                <TouchableOpacity>
                   <View style={styles.contactItem}>
                     <Image
                       source={require('../images/pro-pic.png')}
@@ -80,13 +90,6 @@ export default function ContactList(props: any) {
             )}
           </View>
         </ScrollView>
-
-        <TouchableOpacity
-          onPress={() => props.navigation.navigate('CreateContact')}>
-          <View style={styles.addContactButton}>
-            <Icon name="plus" size={24} color={'#fff'} />
-          </View>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -160,5 +163,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     paddingLeft: 10,
     fontSize: 18,
+  },
+  backButton: {
+    marginRight: 20,
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

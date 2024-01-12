@@ -36,6 +36,7 @@ import ContactList from './src/components/ContactList';
 import CreateContact from './src/components/CreateContact';
 import ViewContact from './src/components/ViewContact';
 import EditContact from './src/components/EditContact';
+import Search from './src/components/Search';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -72,6 +73,7 @@ function App(): React.JSX.Element {
           <Stack.Screen name="ViewContact" component={ViewContact} />
           <Stack.Screen name="CreateContact" component={CreateContact} />
           <Stack.Screen name="EditContact" component={EditContact} />
+          <Stack.Screen name="Search" component={Search} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>

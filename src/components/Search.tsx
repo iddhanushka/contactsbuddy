@@ -68,7 +68,10 @@ export default function Search(props: any) {
           <View style={styles.contactList}>
             {filteredContacts.length > 0 ? (
               filteredContacts.map(item => (
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    props.navigation.navigate('ViewContact', {item})
+                  }>
                   <View style={styles.contactItem}>
                     <Image
                       source={require('../images/pro-pic.png')}

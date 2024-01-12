@@ -59,6 +59,7 @@ export default function ContactList(props: any) {
                   onPress={() =>
                     props.navigation.navigate('ViewContact', {item})
                   }>
+                  {/* {console.log(item.id)} */}
                   <View style={styles.contactItem}>
                     <Image
                       source={require('../images/pro-pic.png')}

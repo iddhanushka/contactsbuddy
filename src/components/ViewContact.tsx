@@ -42,7 +42,7 @@ const ViewContact = (props: any) => {
         (_, {rowsAffected}) => {
           if (rowsAffected > 0) {
             console.log('User information deleted successfully!');
-            props.navigation.goBack();
+            props.navigation.navigate('Home');
           } else {
             console.error('No user found with the given ID.');
           }

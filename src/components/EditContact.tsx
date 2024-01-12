@@ -72,6 +72,7 @@ const EditContact = (props: any) => {
           <TextInput
             onChangeText={updatePhone => setEditablePhone(updatePhone)}
             value={editablePhone}
+            keyboardType="number-pad"
             placeholder="Phone"
             placeholderTextColor="#fff"
             style={styles.phone}></TextInput>
